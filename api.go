@@ -54,7 +54,7 @@ func (a *ApiService) InitiateNibsOutwardFundsTransferSingleDebit(
 	ctx context.Context,
 	nipNameEnqResult *NipNameEnquiryResponseContent,
 	outwardTransferReq NipOutwardTransferRequest,
-) (any, error) {
+) (*NipTransferResponse, error) {
 
 	if err := a.setAccessToken(); err != nil {
 		return nil, fmt.Errorf("set access token: %w", err)
@@ -384,7 +384,7 @@ func (a *ApiService) makeNibsOutwardFundsTransferSingleDebit(
 	input,
 	authBearer,
 	targetBearer string,
-) (any, error) {
+) (*NipTransferResponse, error) {
 
 	url := fmt.Sprintf("%s/gateway/nipoutwardtransaction/api/v1/nipoutwardtransaction/fundstransfer", a.config.BaseUrl)
 	method := http.MethodPost
@@ -408,13 +408,12 @@ func (a *ApiService) makeNibsOutwardFundsTransferSingleDebit(
 			WithField("resultDecoded", resultDecoded).
 			Info("nip transfer target response result decoded")
 
-		var resultMap map[string]any
+		var resultMap NipTransferResponse
 		if err := json.Unmarshal([]byte(resultDecoded), &resultMap); err != nil {
 			logrus.WithError(err).WithField("decodedStr", resultDecoded).Error("could not unmarshal result")
 			return nil, fmt.Errorf("nip transfer response unmarshal: %w", err)
 		}
-
-		return resultMap, nil
+		return &resultMap, nil
 	}
 
 	if err != nil {

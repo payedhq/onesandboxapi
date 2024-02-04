@@ -121,3 +121,12 @@ type NipNameEnquiryResponseContent struct {
 	KycLevel                   string `json:"kycLevel"`
 	ResponseCode               string `json:"responseCode"`
 }
+
+type NipTransferResponse struct {
+	Success   bool           `json:"success"`
+	Content   string         `json:"content"`
+	Error     *ErrorResponse `json:"error"`
+	Message   string         `json:"message"`
+	RequestID string         `json:"request_id"`
+	TimeTaken string         `json:"time_taken"`
+}
