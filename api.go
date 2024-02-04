@@ -134,6 +134,44 @@ func (a *ApiService) NipNameEnquiry(
 	return nipNameEnqResult, nil
 }
 
+func (a *ApiService) NipTransactionValidation(
+	sessionId string,
+) (*NipTransactionValidationResponse, error) {
+
+	if err := a.setAccessToken(); err != nil {
+		return nil, fmt.Errorf("set access token: %w", err)
+	}
+
+	nipTransactionValidationReq := map[string]any{
+		"sessionID": sessionId,
+	}
+
+	nipTransactionValidationReqBytes, err := json.Marshal(nipTransactionValidationReq)
+	if err != nil {
+		a.logger.WithError(err).WithField("nipTransactionValidationReq", nipTransactionValidationReq).Error("could not convert nipTransactionValidationReq to json")
+		return nil, fmt.Errorf("nipAccountNameLookupReq to json: %w", err)
+	}
+
+	payload := string(nipTransactionValidationReqBytes)
+
+	a.logger.WithField("payload", payload).Info("Nibs transaction validation payload")
+
+	encodedData, err := encryption.EncryptAES(payload, a.config.Key, a.config.IV)
+	if err != nil {
+		a.logger.WithError(err).WithField("payload", payload).Error("could not encode nibbs payload")
+		return nil, fmt.Errorf("encode nibbs payload: %w", err)
+	}
+
+	nipNameEnqResult, err := a.makeNipTransactionValidation(encodedData, a.accessToken, a.config.NipTargetToken)
+	if err != nil {
+		a.logger.WithError(err).WithField("encodedData", encodedData).Error("could not make nip transaction validation request")
+		return nil, fmt.Errorf("nip transaction validation request: %w", err)
+	}
+
+	a.logger.WithField("validationResult", nipNameEnqResult).Info("nip transaction validation request completed")
+	return nipNameEnqResult, nil
+}
+
 func (a *ApiService) InitiateFundsTransferSingleDebit(
 	ctx context.Context,
 	sterlingToSterlingReq SterlingToSterlingTransferRequest,
@@ -329,6 +367,55 @@ func (a *ApiService) makeFundsTransferSingleDebit(
 	}
 
 	return nil, fmt.Errorf("single call debit unexpected error making request")
+}
+
+func (a *ApiService) makeNipTransactionValidation(
+	input,
+	authBearer,
+	targetBearer string,
+) (*NipTransactionValidationResponse, error) {
+
+	url := fmt.Sprintf("%s/gateway/nipoutwardtransaction/api/v1/nipoutwardtransaction/transactionvalidation", a.config.BaseUrl)
+	method := http.MethodPost
+
+	result, err := a.makeEncyptedRequest(url, method, input, authBearer, map[string]string{
+		"Targetbearer": fmt.Sprintf("Bearer %s", targetBearer),
+	})
+
+	logrus.WithField("result", result).WithError(err).Info("feedback from nip transaction validation")
+
+	if result != "" {
+		resultDecoded, err := encryption.DecryptAES(result, a.config.Key, a.config.IV)
+		if err != nil {
+			logrus.WithError(err).
+				WithField("encodedStr", result).
+				Error("could not decrypt target bearer token")
+			return nil, fmt.Errorf("nip transaction validation could not decode response: %w", err)
+		}
+
+		logrus.
+			WithField("resultDecoded", resultDecoded).
+			Info("target response result decoded")
+
+		var resultMap NipTransactionValidationResponse
+		if err := json.Unmarshal([]byte(resultDecoded), &resultMap); err != nil {
+			logrus.WithError(err).WithField("decodedStr", resultDecoded).Error("could not unmarshal result")
+			return nil, fmt.Errorf("nip transaction validation response unmarshal: %w", err)
+		}
+
+		if !resultMap.IsSuccess {
+			logrus.WithField("status", resultMap.IsSuccess).WithField("resultMap", resultMap).WithField("Message", resultMap.Message).Error("result is not successful")
+			return nil, fmt.Errorf("nip transaction validation could not complete request: %s", resultMap.Message)
+		}
+
+		return &resultMap, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("nip transaction validation: %w", err)
+	}
+
+	return nil, fmt.Errorf("nip transaction validation unexpected error making request")
 }
 
 func (a *ApiService) makeNibsOutwardNameEnquiry(

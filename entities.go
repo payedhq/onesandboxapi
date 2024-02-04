@@ -130,3 +130,19 @@ type NipTransferResponse struct {
 	RequestID string         `json:"request_id"`
 	TimeTaken string         `json:"time_taken"`
 }
+
+type NipTransactionValidationResponse struct {
+	Content      Content        `json:"content"`
+	Error        *ErrorResponse `json:"error"`
+	HasError     bool           `json:"hasError"`
+	ErrorMessage string         `json:"errorMessage"`
+	Message      string         `json:"message"`
+	IsSuccess    bool           `json:"isSuccess"`
+	RequestTime  string         `json:"requestTime"`
+	ResponseTime string         `json:"responseTime"`
+	SessionID    string         `json:"sessionID"`
+}
+
+type Content struct {
+	Status string `json:"status"`
+}
