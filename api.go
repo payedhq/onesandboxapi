@@ -36,16 +36,19 @@ type ApiService struct {
 	httpClient        *http.Client
 	accessToken       string
 	targetBearerToken string
+	appId             int
 	expiresAt         time.Time
 	logger            *logrus.Entry
 }
 
 func NewApiService(apiServiceConfig Config, logger *logrus.Entry) *ApiService {
+	appId, _ := strconv.Atoi(apiServiceConfig.ChannelId)
 	return &ApiService{
 		config: &apiServiceConfig,
 		httpClient: &http.Client{
 			Timeout: time.Minute * 2,
 		},
+		appId:  appId,
 		logger: logger,
 	}
 }
@@ -174,14 +177,22 @@ func (a *ApiService) NipTransactionValidation(
 
 func (a *ApiService) InitiateFundsTransferSingleDebit(
 	ctx context.Context,
-	sterlingToSterlingReq SterlingToSterlingTransferRequest,
+	input SterlingToSterlingTransferRequest,
 ) (*SingleDebitFundsTransferResponse, error) {
 
 	if err := a.setAccessToken(); err != nil {
 		return nil, fmt.Errorf("set access token: %w", err)
 	}
+	sterlingToSterlingReq := sterlingToSterlingTransferRequest{
+		SterlingToSterlingTransferRequest: input,
+	}
 
 	sterlingToSterlingReq.PrincipalDebitAccount = a.config.DebitAccountNumber
+	sterlingToSterlingReq.ChannelID = a.appId
+	sterlingToSterlingReq.TransactionDebitType = 2
+	sterlingToSterlingReq.TransactionFeeCode = 910
+	sterlingToSterlingReq.CreditCurrency = "NGN"
+	sterlingToSterlingReq.DebitCurrency = "NGN"
 
 	sterlingToSterlingReqBytes, err := json.Marshal(sterlingToSterlingReq)
 	if err != nil {

@@ -1,21 +1,25 @@
 package onesandboxapi
 
 type SterlingToSterlingTransferRequest struct {
-	PrincipalDebitAccount  string  `json:"principalDebitAccount"`
 	PrincipalCreditAccount string  `json:"principalCreditAccount"`
 	PrincipalAmount        float64 `json:"principalAmount"`
 	FeeAmount              float64 `json:"feeAmount"`
-	VatDebitAccount        string  `json:"vatDebitAccount"`
-	VatCreditAccount       string  `json:"vatCreditAccount"`
-	VatAmount              float64 `json:"vatAmount"`
-	DebitCurrency          string  `json:"debitCurrency"`
-	CreditCurrency         string  `json:"creditCurrency"`
-	TransactionDebitType   int64   `json:"transactionDebitType"`
-	ChannelID              int     `json:"channelID"`
 	TransactionNarration   string  `json:"transactionNarration"`
 	TransactionReference   string  `json:"transactionReference"`
-	TransactionFeeCode     int64   `json:"transactionFeeCode"`
-	FtCommissionTypes      string  `json:"ftCommissionTypes"`
+}
+
+type sterlingToSterlingTransferRequest struct {
+	SterlingToSterlingTransferRequest
+	PrincipalDebitAccount string  `json:"principalDebitAccount"`
+	VatDebitAccount       string  `json:"vatDebitAccount"`
+	VatCreditAccount      string  `json:"vatCreditAccount"`
+	VatAmount             float64 `json:"vatAmount"`
+	DebitCurrency         string  `json:"debitCurrency"`
+	CreditCurrency        string  `json:"creditCurrency"`
+	TransactionDebitType  int64   `json:"transactionDebitType"`
+	ChannelID             int     `json:"channelID"`
+	TransactionFeeCode    int64   `json:"transactionFeeCode"`
+	FtCommissionTypes     string  `json:"ftCommissionTypes"`
 }
 
 type NipAccountNameLookupRequest struct {
