@@ -1,5 +1,7 @@
 package onesandboxapi
 
+import "fmt"
+
 type SterlingToSterlingTransferRequest struct {
 	PrincipalCreditAccount string  `json:"principalCreditAccount"`
 	PrincipalAmount        float64 `json:"principalAmount"`
@@ -62,6 +64,10 @@ type ErrorResponse struct {
 	Details     any    `json:"details"`
 }
 
+func (s ErrorResponse) Error() string {
+	return fmt.Sprintf("code=%s desc=%s details=%v", s.Code, s.Description, s.Details)
+}
+
 type ChannelBearerTokenResponse struct {
 	Success   bool                              `json:"success"`
 	Content   ChannelBearerTokenResponseContent `json:"content"`
@@ -102,10 +108,18 @@ type NipNameEnquiryResponse struct {
 type SingleDebitFundsTransferResponse struct {
 	Success   bool                                    `json:"success"`
 	Content   SingleDebitFundsTransferResponseContent `json:"content"`
-	Error     *ErrorResponse                          `json:"error"`
+	ErrorData *ErrorResponse                          `json:"error"`
 	Message   string                                  `json:"message"`
 	RequestID string                                  `json:"request_id"`
 	TimeTaken string                                  `json:"time_taken"`
+}
+
+func (s SingleDebitFundsTransferResponse) Error() string {
+	if s.ErrorData == nil {
+		return fmt.Sprintf("msg=%s", s.Message)
+	}
+
+	return fmt.Sprintf("msg=%s err=%s", s.Message, s.ErrorData.Error())
 }
 
 type SingleDebitFundsTransferResponseContent struct {
