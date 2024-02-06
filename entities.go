@@ -161,13 +161,22 @@ type NipTransactionValidationResponse struct {
 	SessionID    string                                  `json:"sessionID"`
 }
 
+func (s NipTransactionValidationResponse) IsSuccessfullyProcessed() bool {
+	return s.Content.IsSuccessfullyProcessed()
+}
+
 type NipTransactionValidationResponseContent struct {
+	Status       string `json:"status"`
 	HasError     bool   `json:"hasError"`
 	ErrorMessage string `json:"errorMessage"`
 	IsSuccess    bool   `json:"isSuccess"`
 	RequestTime  string `json:"requestTime"`
 	ResponseTime string `json:"responseTime"`
 	SessionID    string `json:"sessionID"`
+}
+
+func (s NipTransactionValidationResponseContent) IsSuccessfullyProcessed() bool {
+	return s.Status == "S"
 }
 
 type SterlingToSterlingTransactionValidationResponse struct {
