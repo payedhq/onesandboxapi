@@ -150,19 +150,24 @@ type NipTransferResponse struct {
 }
 
 type NipTransactionValidationResponse struct {
-	Content      Content        `json:"content"`
-	Error        *ErrorResponse `json:"error"`
-	HasError     bool           `json:"hasError"`
-	ErrorMessage string         `json:"errorMessage"`
-	Message      string         `json:"message"`
-	IsSuccess    bool           `json:"isSuccess"`
-	RequestTime  string         `json:"requestTime"`
-	ResponseTime string         `json:"responseTime"`
-	SessionID    string         `json:"sessionID"`
+	Content      NipTransactionValidationResponseContent `json:"content"`
+	Error        *ErrorResponse                          `json:"error"`
+	HasError     bool                                    `json:"hasError"`
+	ErrorMessage string                                  `json:"errorMessage"`
+	Message      string                                  `json:"message"`
+	IsSuccess    bool                                    `json:"isSuccess"`
+	RequestTime  string                                  `json:"requestTime"`
+	ResponseTime string                                  `json:"responseTime"`
+	SessionID    string                                  `json:"sessionID"`
 }
 
-type Content struct {
-	Status string `json:"status"`
+type NipTransactionValidationResponseContent struct {
+	HasError     bool   `json:"hasError"`
+	ErrorMessage string `json:"errorMessage"`
+	IsSuccess    bool   `json:"isSuccess"`
+	RequestTime  string `json:"requestTime"`
+	ResponseTime string `json:"responseTime"`
+	SessionID    string `json:"sessionID"`
 }
 
 type SterlingToSterlingTransactionValidationResponse struct {
