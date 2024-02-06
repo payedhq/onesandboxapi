@@ -173,8 +173,13 @@ type SterlingToSterlingTransactionValidationResponse struct {
 	Message      string                                                 `json:"message"`
 	RequestID    string                                                 `json:"requestId"`
 	IsSuccess    bool                                                   `json:"isSuccess"`
+	Success      bool                                                   `json:"success"`
 	RequestTime  string                                                 `json:"requestTime"`
 	ResponseTime string                                                 `json:"responseTime"`
+}
+
+func (s SterlingToSterlingTransactionValidationResponse) IsSuccessfullyProcessed() bool {
+	return s.Content.IsSuccessfullyProcessed()
 }
 
 type SterlingToSterlingTransactionValidationResponseContent struct {
@@ -186,4 +191,8 @@ type SterlingToSterlingTransactionValidationResponseContent struct {
 	FeeResponse                interface{} `json:"feeResponse"`
 	UniqueTransactionReference string      `json:"uniqueTransactionReference"`
 	VatResponse                interface{} `json:"vatResponse"`
+}
+
+func (s SterlingToSterlingTransactionValidationResponseContent) IsSuccessfullyProcessed() bool {
+	return s.TransactionStatus == "PROCESSED"
 }

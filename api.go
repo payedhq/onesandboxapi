@@ -506,7 +506,7 @@ func (a *ApiService) makeSterlingToSterlingTransactionValidation(
 			return nil, fmt.Errorf("sterling to sterling transaction validation response unmarshal: %w", err)
 		}
 
-		if !resultMap.IsSuccess {
+		if !resultMap.IsSuccess && !resultMap.Success {
 			logrus.WithField("status", resultMap.IsSuccess).WithField("resultMap", resultMap).WithField("Message", resultMap.Message).Error("result is not successful")
 			return nil, fmt.Errorf("sterling to sterling transaction validation could not complete request: %s", resultMap.Message)
 		}
