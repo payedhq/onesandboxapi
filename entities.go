@@ -164,3 +164,26 @@ type NipTransactionValidationResponse struct {
 type Content struct {
 	Status string `json:"status"`
 }
+
+type SterlingToSterlingTransactionValidationResponse struct {
+	Content      SterlingToSterlingTransactionValidationResponseContent `json:"content"`
+	Error        *ErrorResponse                                         `json:"error"`
+	HasError     bool                                                   `json:"hasError"`
+	ErrorMessage string                                                 `json:"errorMessage"`
+	Message      string                                                 `json:"message"`
+	RequestID    string                                                 `json:"requestId"`
+	IsSuccess    bool                                                   `json:"isSuccess"`
+	RequestTime  string                                                 `json:"requestTime"`
+	ResponseTime string                                                 `json:"responseTime"`
+}
+
+type SterlingToSterlingTransactionValidationResponseContent struct {
+	TransactionReference       string      `json:"transactionReference"`
+	TransactionStatus          string      `json:"transactionStatus"`
+	TransactionStatusVat       interface{} `json:"transactionStatusVat"`
+	BranchCode                 string      `json:"branchCode"`
+	PrincipalResponse          string      `json:"principalResponse"`
+	FeeResponse                interface{} `json:"feeResponse"`
+	UniqueTransactionReference string      `json:"uniqueTransactionReference"`
+	VatResponse                interface{} `json:"vatResponse"`
+}

@@ -175,6 +175,44 @@ func (a *ApiService) NipTransactionValidation(
 	return nipNameEnqResult, nil
 }
 
+func (a *ApiService) SterlingToSterlingTransactionValidation(
+	transactionReference string,
+) (*SterlingToSterlingTransactionValidationResponse, error) {
+
+	if err := a.setAccessToken(); err != nil {
+		return nil, fmt.Errorf("set access token: %w", err)
+	}
+
+	sterlingToSterlingTransactionValidationReq := map[string]any{
+		"transactionReference": transactionReference,
+	}
+
+	sTransactionValidationReqBytes, err := json.Marshal(sterlingToSterlingTransactionValidationReq)
+	if err != nil {
+		a.logger.WithError(err).WithField("sterlingToSterlingTransactionValidationReq", sterlingToSterlingTransactionValidationReq).Error("could not convert sterlingToSterlingTransactionValidationReq to json")
+		return nil, fmt.Errorf("sterlingToSterlingTransactionValidationReq to json: %w", err)
+	}
+
+	payload := string(sTransactionValidationReqBytes)
+
+	a.logger.WithField("payload", payload).Info("sterling to sterling transaction validation payload")
+
+	encodedData, err := encryption.EncryptAES(payload, a.config.Key, a.config.IV)
+	if err != nil {
+		a.logger.WithError(err).WithField("payload", payload).Error("could not encode sterling payload")
+		return nil, fmt.Errorf("encode sterling payload: %w", err)
+	}
+
+	validationEnqResult, err := a.makeSterlingToSterlingTransactionValidation(encodedData, a.accessToken, a.targetBearerToken)
+	if err != nil {
+		a.logger.WithError(err).WithField("encodedData", encodedData).Error("could not make sterling transaction validation request")
+		return nil, fmt.Errorf("sterling transaction validation request: %w", err)
+	}
+
+	a.logger.WithField("validationResult", validationEnqResult).Info("sterling transaction validation request completed")
+	return validationEnqResult, nil
+}
+
 func (a *ApiService) InitiateFundsTransferSingleDebit(
 	ctx context.Context,
 	input SterlingToSterlingTransferRequest,
@@ -432,6 +470,55 @@ func (a *ApiService) makeNipTransactionValidation(
 	}
 
 	return nil, fmt.Errorf("nip transaction validation unexpected error making request")
+}
+
+func (a *ApiService) makeSterlingToSterlingTransactionValidation(
+	input,
+	authBearer,
+	targetBearer string,
+) (*SterlingToSterlingTransactionValidationResponse, error) {
+
+	url := fmt.Sprintf("%s/gateway/fundtransfer/api/v1/fundstransfer/requerytransaction", a.config.BaseUrl)
+	method := http.MethodPost
+
+	result, err := a.makeEncyptedRequest(url, method, input, authBearer, map[string]string{
+		"Targetbearer": fmt.Sprintf("Bearer %s", targetBearer),
+	})
+
+	logrus.WithField("result", result).WithError(err).Info("feedback from nip transaction validation")
+
+	if result != "" {
+		resultDecoded, err := encryption.DecryptAES(result, a.config.Key, a.config.IV)
+		if err != nil {
+			logrus.WithError(err).
+				WithField("encodedStr", result).
+				Error("could not decrypt target bearer token")
+			return nil, fmt.Errorf("sterling to sterling transaction validation could not decode response: %w", err)
+		}
+
+		logrus.
+			WithField("resultDecoded", resultDecoded).
+			Info("target response result decoded")
+
+		var resultMap SterlingToSterlingTransactionValidationResponse
+		if err := json.Unmarshal([]byte(resultDecoded), &resultMap); err != nil {
+			logrus.WithError(err).WithField("decodedStr", resultDecoded).Error("could not unmarshal result")
+			return nil, fmt.Errorf("sterling to sterling transaction validation response unmarshal: %w", err)
+		}
+
+		if !resultMap.IsSuccess {
+			logrus.WithField("status", resultMap.IsSuccess).WithField("resultMap", resultMap).WithField("Message", resultMap.Message).Error("result is not successful")
+			return nil, fmt.Errorf("sterling to sterling transaction validation could not complete request: %s", resultMap.Message)
+		}
+
+		return &resultMap, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("sterling to sterling transaction validation: %w", err)
+	}
+
+	return nil, fmt.Errorf("sterling to sterling transaction validation unexpected error making request")
 }
 
 func (a *ApiService) makeNibsOutwardNameEnquiry(
