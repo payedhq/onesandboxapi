@@ -105,6 +105,17 @@ type NipNameEnquiryResponse struct {
 	TimeTaken string                        `json:"time_taken"`
 }
 
+type NipNameEnquiryResponseContent struct {
+	SessionID                  string `json:"sessionID"`
+	DestinationInstitutionCode string `json:"destinationInstitutionCode"`
+	ChannelCode                int64  `json:"channelCode"`
+	AccountNumber              string `json:"accountNumber"`
+	AccountName                string `json:"accountName"`
+	BankVerificationNumber     string `json:"bankVerificationNumber"`
+	KycLevel                   string `json:"kycLevel"`
+	ResponseCode               string `json:"responseCode"`
+}
+
 type SingleDebitFundsTransferResponse struct {
 	Success   bool                                    `json:"success"`
 	Content   SingleDebitFundsTransferResponseContent `json:"content"`
@@ -127,17 +138,6 @@ type SingleDebitFundsTransferResponseContent struct {
 	VatFTResponse              any    `json:"vatFTResponse"`
 	FeeFTResponse              any    `json:"feeFTResponse"`
 	UniqueTransactionReference string `json:"uniqueTransactionReference"`
-}
-
-type NipNameEnquiryResponseContent struct {
-	SessionID                  string `json:"sessionID"`
-	DestinationInstitutionCode string `json:"destinationInstitutionCode"`
-	ChannelCode                int64  `json:"channelCode"`
-	AccountNumber              string `json:"accountNumber"`
-	AccountName                string `json:"accountName"`
-	BankVerificationNumber     string `json:"bankVerificationNumber"`
-	KycLevel                   string `json:"kycLevel"`
-	ResponseCode               string `json:"responseCode"`
 }
 
 type NipTransferResponse struct {

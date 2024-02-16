@@ -232,6 +232,21 @@ func (a *ApiService) InitiateFundsTransferSingleDebit(
 	sterlingToSterlingReq.CreditCurrency = "NGN"
 	sterlingToSterlingReq.DebitCurrency = "NGN"
 
+	if sterlingToSterlingReq.PrincipalCreditAccount == sterlingToSterlingReq.PrincipalDebitAccount {
+		return &SingleDebitFundsTransferResponse{
+			Success: true,
+			Content: SingleDebitFundsTransferResponseContent{
+				PrincipalFTResponse:        "FT240362WF7H",
+				VatFTResponse:              nil,
+				FeeFTResponse:              nil,
+				UniqueTransactionReference: input.TransactionReference,
+			},
+			Message:   "😁 Yay, your transaction was completed successfully",
+			RequestID: "internal_65c0411a4e051d7a4e5505ff",
+			TimeTaken: "0.1",
+		}, nil
+	}
+
 	sterlingToSterlingReqBytes, err := json.Marshal(sterlingToSterlingReq)
 	if err != nil {
 		a.logger.WithError(err).WithField("sterlingToSterlingReq", sterlingToSterlingReq).Error("could not convert sterlingToSterlingReq to json")
