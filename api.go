@@ -17,6 +17,7 @@ import (
 )
 
 var ErrInternalServer = errors.New("internal server error")
+var ErrRequestOrResponse = errors.New("request or response error")
 
 type Config struct {
 	Key                string
@@ -756,7 +757,7 @@ func (a *ApiService) makeEncyptedRequest(
 			return "", errors.Join(ErrInternalServer, fmt.Errorf("unsuccessful response: status=%s code=%d, result %s", res.Status, res.StatusCode, string(body)))
 		}
 
-		return resultStr, fmt.Errorf("unsuccessful response: status=%s code=%d, result %s", res.Status, res.StatusCode, string(body))
+		return resultStr, errors.Join(ErrRequestOrResponse, fmt.Errorf("unsuccessful response: status=%s code=%d, result %s", res.Status, res.StatusCode, string(body)))
 	}
 
 	logrus.
