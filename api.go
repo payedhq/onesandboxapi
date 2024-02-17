@@ -435,7 +435,7 @@ func (a *ApiService) makeFundsTransferSingleDebit(
 		return nil, fmt.Errorf("single call debit: %w", err)
 	}
 
-	return nil, fmt.Errorf("single call debit unexpected error making request")
+	return nil, fmt.Errorf("single call debit unexpected error making request: %w", ErrInternalServer)
 }
 
 func (a *ApiService) makeNipTransactionValidation(
@@ -484,7 +484,7 @@ func (a *ApiService) makeNipTransactionValidation(
 		return nil, fmt.Errorf("nip transaction validation: %w", err)
 	}
 
-	return nil, fmt.Errorf("nip transaction validation unexpected error making request")
+	return nil, fmt.Errorf("nip transaction validation unexpected error making request: %w", ErrInternalServer)
 }
 
 func (a *ApiService) makeSterlingToSterlingTransactionValidation(
@@ -533,7 +533,7 @@ func (a *ApiService) makeSterlingToSterlingTransactionValidation(
 		return nil, fmt.Errorf("sterling to sterling transaction validation: %w", err)
 	}
 
-	return nil, fmt.Errorf("sterling to sterling transaction validation unexpected error making request")
+	return nil, fmt.Errorf("sterling to sterling transaction validation unexpected error making request: %w", ErrInternalServer)
 }
 
 func (a *ApiService) makeNibsOutwardNameEnquiry(
@@ -582,7 +582,7 @@ func (a *ApiService) makeNibsOutwardNameEnquiry(
 		return nil, fmt.Errorf("nip name enquiry: %w", err)
 	}
 
-	return nil, fmt.Errorf("nip name enquiry unexpected error making request")
+	return nil, fmt.Errorf("nip name enquiry unexpected error making request: %w", ErrInternalServer)
 }
 
 func (a *ApiService) makeNibsOutwardFundsTransferSingleDebit(
@@ -625,7 +625,7 @@ func (a *ApiService) makeNibsOutwardFundsTransferSingleDebit(
 		return nil, fmt.Errorf("nip name enquiry: %w", err)
 	}
 
-	return nil, fmt.Errorf("nip name enquiry unexpected error making request")
+	return nil, fmt.Errorf("nip name enquiry unexpected error making request: %w", ErrInternalServer)
 }
 
 func generateSessionId() string {
