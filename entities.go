@@ -196,6 +196,10 @@ func (s SterlingToSterlingTransactionValidationResponse) IsSuccessfullyProcessed
 	return s.Content.IsSuccessfullyProcessed()
 }
 
+func (s SterlingToSterlingTransactionValidationResponse) IsUnSuccessfullyProcessed() bool {
+	return s.Content.IsUnSuccessfullyProcessed()
+}
+
 type SterlingToSterlingTransactionValidationResponseContent struct {
 	TransactionReference       string      `json:"transactionReference"`
 	TransactionStatus          string      `json:"transactionStatus"`
@@ -209,4 +213,8 @@ type SterlingToSterlingTransactionValidationResponseContent struct {
 
 func (s SterlingToSterlingTransactionValidationResponseContent) IsSuccessfullyProcessed() bool {
 	return s.TransactionStatus == "PROCESSED"
+}
+
+func (s SterlingToSterlingTransactionValidationResponseContent) IsUnSuccessfullyProcessed() bool {
+	return s.TransactionStatus == "ERROR"
 }
