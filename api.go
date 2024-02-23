@@ -473,7 +473,7 @@ func (a *ApiService) makeNipTransactionValidation(
 			return nil, fmt.Errorf("nip transaction validation response unmarshal: %w", err)
 		}
 
-		if !resultMap.IsSuccess {
+		if !resultMap.IsSuccess && !resultMap.Success {
 			logrus.WithField("status", resultMap.IsSuccess).WithField("resultMap", resultMap).WithField("Message", resultMap.Message).Error("result is not successful")
 			return nil, fmt.Errorf("nip transaction validation could not complete request: %s", resultMap.Message)
 		}

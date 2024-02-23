@@ -156,6 +156,7 @@ type NipTransactionValidationResponse struct {
 	ErrorMessage string                                  `json:"errorMessage"`
 	Message      string                                  `json:"message"`
 	IsSuccess    bool                                    `json:"isSuccess"`
+	Success      bool                                    `json:"success"`
 	RequestTime  string                                  `json:"requestTime"`
 	ResponseTime string                                  `json:"responseTime"`
 	SessionID    string                                  `json:"sessionID"`
