@@ -424,6 +424,11 @@ func (a *ApiService) makeFundsTransferSingleDebit(
 			return nil, fmt.Errorf("single call debit could not complete request: %s", resultMap.Message)
 		}
 
+		if resultMap.ErrorData != nil {
+			logrus.WithField("status", resultMap.Success).WithField("errorData", resultMap.ErrorData).WithField("Message", resultMap.Message).Error("result is not successful")
+			return nil, &resultMap
+		}
+
 		if resultMap.Content.FeeFTResponse == "" {
 			logrus.WithField("status", resultMap.Success).WithField("resultMap", resultMap).WithField("Message", resultMap.Message).Error("result is not successful")
 			return nil, &resultMap

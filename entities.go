@@ -125,6 +125,10 @@ type SingleDebitFundsTransferResponse struct {
 	TimeTaken string                                  `json:"time_taken"`
 }
 
+func (s SingleDebitFundsTransferResponse) IsSuccessfullyProcessed() bool {
+	return s.Success && s.Content.IsSuccessfullyProcessed()
+}
+
 func (s SingleDebitFundsTransferResponse) Error() string {
 	if s.ErrorData == nil {
 		return fmt.Sprintf("msg=%s", s.Message)
@@ -138,6 +142,10 @@ type SingleDebitFundsTransferResponseContent struct {
 	VatFTResponse              any    `json:"vatFTResponse"`
 	FeeFTResponse              any    `json:"feeFTResponse"`
 	UniqueTransactionReference string `json:"uniqueTransactionReference"`
+}
+
+func (s SingleDebitFundsTransferResponseContent) IsSuccessfullyProcessed() bool {
+	return s.PrincipalFTResponse != ""
 }
 
 type NipTransferResponse struct {
