@@ -31,31 +31,39 @@ type NipAccountNameLookupRequest struct {
 	AccountNumber              string `json:"accountNumber"`
 }
 
+type SimpleNipOutwardTransferRequest struct {
+	AccountNumber string  `json:"accountNumber"`
+	BankCode      string  `json:"bankCode"`
+	Reference     string  `json:"reference"`
+	OriginatorBVN string  `json:"originatorBVN"`
+	Amount        float64 `json:"amount"`
+}
+
 type NipOutwardTransferRequest struct {
-	NameEnquirySessionID string `json:"nameEnquirySessionID"`
-	TransactionCode      string `json:"transactionCode"`
-	ChannelCode          int64  `json:"channelCode"`
-	PaymentReference     string `json:"paymentReference"`
-	Amount               int64  `json:"amount"`
-	CreditAccountName    string `json:"creditAccountName"`
-	CreditAccountNumber  string `json:"creditAccountNumber"`
-	OriginatorName       string `json:"originatorName"`
-	BranchCode           string `json:"branchCode"`
-	CustomerID           string `json:"customerID"`
-	CurrencyCode         string `json:"currencyCode"`
-	LedgerCode           string `json:"ledgerCode"`
-	SubAccountCode       string `json:"subAccountCode"`
-	NameEnquiryResponse  string `json:"nameEnquiryResponse"`
-	DebitAccountNumber   string `json:"debitAccountNumber"`
-	BeneficiaryBankCode  string `json:"beneficiaryBankCode"`
-	OriginatorBVN        string `json:"originatorBVN"`
-	BeneficiaryBVN       string `json:"beneficiaryBVN"`
-	BeneficiaryKYCLevel  string `json:"beneficiaryKYCLevel"`
-	OriginatorKYCLevel   string `json:"originatorKYCLevel"`
-	TransactionLocation  string `json:"transactionLocation"`
-	AppID                int64  `json:"appId"`
-	PriorityLevel        int64  `json:"priorityLevel"`
-	IsWalletTransaction  bool   `json:"isWalletTransaction"`
+	NameEnquirySessionID string  `json:"nameEnquirySessionID"`
+	TransactionCode      string  `json:"transactionCode"`
+	ChannelCode          int64   `json:"channelCode"`
+	PaymentReference     string  `json:"paymentReference"`
+	Amount               float64 `json:"amount"`
+	CreditAccountName    string  `json:"creditAccountName"`
+	CreditAccountNumber  string  `json:"creditAccountNumber"`
+	OriginatorName       string  `json:"originatorName"`
+	BranchCode           string  `json:"branchCode"`
+	CustomerID           string  `json:"customerID"`
+	CurrencyCode         string  `json:"currencyCode"`
+	LedgerCode           string  `json:"ledgerCode"`
+	SubAccountCode       string  `json:"subAccountCode"`
+	NameEnquiryResponse  string  `json:"nameEnquiryResponse"`
+	DebitAccountNumber   string  `json:"debitAccountNumber"`
+	BeneficiaryBankCode  string  `json:"beneficiaryBankCode"`
+	OriginatorBVN        string  `json:"originatorBVN"`
+	BeneficiaryBVN       string  `json:"beneficiaryBVN"`
+	BeneficiaryKYCLevel  string  `json:"beneficiaryKYCLevel"`
+	OriginatorKYCLevel   string  `json:"originatorKYCLevel"`
+	TransactionLocation  string  `json:"transactionLocation"`
+	AppID                int64   `json:"appId"`
+	PriorityLevel        int64   `json:"priorityLevel"`
+	IsWalletTransaction  bool    `json:"isWalletTransaction"`
 }
 
 type ErrorResponse struct {

@@ -54,7 +54,46 @@ func NewApiService(apiServiceConfig Config, logger *logrus.Entry) *ApiService {
 	}
 }
 
-func (a *ApiService) InitiateNibsOutwardFundsTransferSingleDebit(
+func (a *ApiService) InitiateExternalTransfer(
+	ctx context.Context,
+	simpleOutwardTransferReq SimpleNipOutwardTransferRequest,
+) (*NipTransferResponse, error) {
+	nipNameEnqResult, err := a.NipNameEnquiry(simpleOutwardTransferReq.AccountNumber, simpleOutwardTransferReq.BankCode)
+	if err != nil {
+		return nil, fmt.Errorf("invalid name enquiry: %w", err)
+	}
+
+	appId, _ := strconv.ParseInt(a.config.ChannelId, 10, 64)
+	outwardTransferReq := NipOutwardTransferRequest{
+		NameEnquirySessionID: nipNameEnqResult.SessionID,
+		TransactionCode:      simpleOutwardTransferReq.Reference,
+		ChannelCode:          1,
+		PaymentReference:     simpleOutwardTransferReq.Reference,
+		Amount:               simpleOutwardTransferReq.Amount,
+		CreditAccountName:    nipNameEnqResult.AccountName,
+		CreditAccountNumber:  nipNameEnqResult.AccountNumber,
+		OriginatorName:       "OneCollect",
+		BranchCode:           "NG0020015",
+		CustomerID:           a.config.CustomerId,
+		CurrencyCode:         "NGN",
+		LedgerCode:           "1200",
+		SubAccountCode:       "0",
+		NameEnquiryResponse:  nipNameEnqResult.ResponseCode,
+		DebitAccountNumber:   a.config.DebitAccountNumber,
+		BeneficiaryBankCode:  nipNameEnqResult.DestinationInstitutionCode,
+		OriginatorBVN:        simpleOutwardTransferReq.OriginatorBVN,
+		BeneficiaryBVN:       nipNameEnqResult.BankVerificationNumber,
+		BeneficiaryKYCLevel:  nipNameEnqResult.KycLevel,
+		OriginatorKYCLevel:   "3",
+		TransactionLocation:  "6.3,4.3",
+		AppID:                appId,
+		PriorityLevel:        1,
+		IsWalletTransaction:  false,
+	}
+	return a.initiateNibsOutwardFundsTransferSingleDebit(ctx, nipNameEnqResult, outwardTransferReq)
+}
+
+func (a *ApiService) initiateNibsOutwardFundsTransferSingleDebit(
 	ctx context.Context,
 	nipNameEnqResult *NipNameEnquiryResponseContent,
 	outwardTransferReq NipOutwardTransferRequest,
@@ -85,7 +124,7 @@ func (a *ApiService) InitiateNibsOutwardFundsTransferSingleDebit(
 		return nil, fmt.Errorf("nibbs payload: %w", err)
 	}
 
-	nipNameTransferEnqResult, err := a.makeNibsOutwardFundsTransferSingleDebit(encodedTransferData, a.accessToken, a.config.NipTargetToken)
+	nipNameTransferEnqResult, err := a.makeNibsOutwardFundsTransferSingleDebit(ctx, encodedTransferData, a.accessToken, a.config.NipTargetToken)
 	if err != nil {
 		a.logger.WithError(err).WithField("encodedData", encodedTransferData).Error("could not make nibbs transfer request")
 		return nil, fmt.Errorf("nibbs transfer request: %w", err)
@@ -592,6 +631,7 @@ func (a *ApiService) makeNibsOutwardNameEnquiry(
 }
 
 func (a *ApiService) makeNibsOutwardFundsTransferSingleDebit(
+	ctx context.Context,
 	input,
 	authBearer,
 	targetBearer string,
@@ -600,7 +640,7 @@ func (a *ApiService) makeNibsOutwardFundsTransferSingleDebit(
 	url := fmt.Sprintf("%s/gateway/nipoutwardtransaction/api/v1/nipoutwardtransaction/fundstransfer", a.config.BaseUrl)
 	method := http.MethodPost
 
-	result, err := a.makeEncyptedRequest(url, method, input, authBearer, map[string]string{
+	result, err := a.makeEncyptedRequestWithContext(ctx, url, method, input, authBearer, map[string]string{
 		"Targetbearer": fmt.Sprintf("Bearer %s", targetBearer),
 	})
 
@@ -719,6 +759,84 @@ func (a *ApiService) makeEncyptedRequest(
 		WithField("payload", wrappedInput).Info("making encrypted api request")
 
 	req, err := http.NewRequest(method, url, payload)
+
+	if err != nil {
+		return "", fmt.Errorf("creating request: %w", err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", authBearer))
+
+	if len(headers) > 0 {
+		for k, v := range headers {
+			req.Header.Add(k, v)
+		}
+	}
+
+	res, err := a.httpClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("sending request: %w", err)
+	}
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", fmt.Errorf("reading response: %w", err)
+	}
+
+	var resultMap map[string]any
+	var resultStr string
+	if len(body) > 0 {
+		if err := json.Unmarshal(body, &resultMap); err != nil {
+			return "", fmt.Errorf("could not unmarshal response %v: err %w", string(body), err)
+		}
+		if resultDataStrVal, ok := resultMap["Data"].(string); ok {
+			resultStr = resultDataStrVal
+		}
+	}
+
+	if res.StatusCode > 299 || res.StatusCode < 200 {
+
+		if res.StatusCode >= 500 {
+			return "", errors.Join(ErrInternalServer, fmt.Errorf("unsuccessful response: status=%s code=%d, result %s", res.Status, res.StatusCode, string(body)))
+		}
+
+		return resultStr, errors.Join(ErrRequestOrResponse, fmt.Errorf("unsuccessful response: status=%s code=%d, result %s", res.Status, res.StatusCode, string(body)))
+	}
+
+	logrus.
+		WithField("body", string(body)).
+		WithField("data", resultStr).
+		WithField("headers", res.Header.Clone()).
+		Info("response recevied")
+
+	return resultStr, nil
+}
+
+func (a *ApiService) makeEncyptedRequestWithContext(
+	ctx context.Context,
+	url,
+	method,
+	input,
+	authBearer string,
+	headers map[string]string,
+) (string, error) {
+	wrappedInput := ""
+
+	var payload io.Reader
+	if input != "" {
+		wrappedInput = fmt.Sprintf(`{"data": "%s"}`, input)
+		payload = strings.NewReader(wrappedInput)
+	}
+
+	logrus.WithField("url", url).
+		WithField("method", method).
+		WithField("authorization", authBearer).
+		WithField("headers", headers).
+		WithField("payload", wrappedInput).Info("making encrypted api request")
+
+	req, err := http.NewRequestWithContext(ctx, method, url, payload)
 
 	if err != nil {
 		return "", fmt.Errorf("creating request: %w", err)
